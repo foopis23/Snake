@@ -281,7 +281,7 @@ public class Game extends JPanel implements KeyListener
             g.drawString("Pause/Hide [P]",(int)(windowSize.getWidth()-font.stringWidth("Pause/Hide [P]")),font.getHeight());
             g.drawString("Restart [Delete]",(int)(windowSize.getWidth()-font.stringWidth("Restart [Delete]")),font.getHeight()*2);
             g.drawString("Exit [Esc]",(int)(windowSize.getWidth()-font.stringWidth("Exit [Esc]")),font.getHeight()*3);
-            g.drawString("Score: "+score,0,font.getHeight());
+            g.drawString("Score: "+score,(int)(windowSize.getWidth()-font.stringWidth("Score: "+score))/2 ,font.getHeight());
 
             if(gameOver)
             {
