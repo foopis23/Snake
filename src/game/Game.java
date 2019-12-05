@@ -7,30 +7,11 @@ import javax.swing.*;
 public class Game extends JPanel implements KeyListener, ActionListener
 {
     private Dimension windowSize;
-    private int tileSize;
-    private int boardWidth;
-    private int boardHeight;
-    private boolean running;
-    private boolean gameOver;
-    private boolean paused;
-    private boolean started;
-    private boolean settings;
-    private int appleX;
-    private int appleY;
-    private int headX;
-    private int headY;
-    private int[] tailX;
-    private int[] tailY;
-    private boolean up;
-    private boolean down;
-    private boolean left;
-    private boolean right;
-    private boolean movingUp;
-    private boolean movingDown;
-    private boolean movingLeft;
-    private boolean movingRight;
-    private int score;
-    private int lastApple;
+    private int tileSize, boardWidth, boardHeight, score, lastApple;
+    private boolean running, gameOver, paused, started, settings;
+    private int appleX, appleY, headX, headY;
+    private int[] tailX, tailY;
+    private boolean up, down, left, right, movingUp, movingDown, movingLeft, movingRight;
     private JFrame frame;
     private UserInfo userInfo;
     private JButton setSnake;
@@ -345,6 +326,7 @@ public class Game extends JPanel implements KeyListener, ActionListener
     @Override
     public void paint(Graphics g)
     {
+        super.paint(g);
         if(running)
         {
             g.setColor(userInfo.getSnakeColor());
