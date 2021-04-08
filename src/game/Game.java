@@ -9,9 +9,7 @@ public class Game extends JPanel implements KeyListener, ActionListener
     private Dimension windowSize;
     private int tileSize, boardWidth, boardHeight, score, lastApple;
     private boolean running, gameOver, paused, started, settings;
-    private int appleX, appleY, headX, headY;
-    private int[] tailX, tailY;
-    private boolean up, down, left, right, movingUp, movingDown, movingLeft, movingRight;
+    private int appleX, appleY;
     private JFrame frame;
     private UserInfo userInfo;
     private JButton setSnake;
@@ -19,6 +17,8 @@ public class Game extends JPanel implements KeyListener, ActionListener
     private JButton done;
     private JButton reset;
     private JColorChooser colorChooser;
+
+    private Snake snake;
 
     //inits everything the program needs to run
     private Game()
@@ -33,124 +33,44 @@ public class Game extends JPanel implements KeyListener, ActionListener
         }
     }
 
-    //ints everything the game needs to run
+    //inits everything the game needs to run
     private void start()
-    {   
-        headX = (int)(boardWidth/2);
-        headY = (int)(boardHeight/2);
-        tailX = new int[]{headX,headX,headX};
-        tailY = new int[]{headY+1,headY+2,headY+3};
-        up = true;
-        down = false;
-        left = false;
-        right = false;
-        movingUp = true;
-        movingDown = false;
-        movingLeft = false;
-        movingRight = false;
-        running = true;
-        gameOver=false;
-        paused=false;
-        started=false;
-        settings=false;
-        score=0;
-        lastApple=0;
-        newApple();
+    {
+        restart();
         loop();
     }
 
     //resets all game values
     private void restart()
     {
-        headX = (int)(boardWidth/2);
-        headY = (int)(boardHeight/2);
-        tailX = new int[]{headX,headX,headX};
-        tailY = new int[]{headY+1,headY+2,headY+3};
-        up = true;
-        down = false;
-        left = false;
-        right = false;
-        movingUp = true;
-        movingDown = false;
-        movingLeft = false;
-        movingRight = false;
+        snake = new Snake(boardWidth/2, boardHeight/2, 3);
+        snake.setColor(userInfo.getSnakeColor());
         running = true;
         gameOver=false;
         paused=false;
-        settings=false;
         started=false;
+        settings=false;
         score=0;
         lastApple=0;
         newApple();
-    }
-
-    //called once every update, this moves each point of the tail to the point in front of it and then moves the head of the tail the correct direction
-    private void move()
-    {
-        for(int i=tailX.length-1;i>0;i--)
-        {
-            tailX[i]=tailX[i-1];
-            tailY[i]=tailY[i-1];
-        }
-
-        tailX[0] = headX;
-        tailY[0] = headY;
-
-        if(up)
-        {
-            headY--;
-            movingUp = true;
-            movingDown = false;
-            movingLeft = false;
-            movingRight = false;
-        }else if(down)
-        {
-            headY++;
-            movingUp = false;
-            movingDown = true;
-            movingLeft = false;
-            movingRight = false;
-        }else if(left)
-        {
-            headX--;
-            movingUp = false;
-            movingDown = false;
-            movingLeft = true;
-            movingRight = false;
-        }else if(right)
-        {
-            headX++;
-            movingUp = false;
-            movingDown = false;
-            movingLeft = false;
-            movingRight = true;
-        }
     }
 
     //This detects if the player runs into his own tail or an apple
     private void collision()
     {
         lastApple++;
-        for(int i=0;i<tailX.length;i++)
-        {
-            if(headX==tailX[i]&&headY==tailY[i])
-            {
-                gameOver=true;
-            }
-        }
 
-        if(headX>boardWidth-1||headX<0)
-        {
+        if (snake.isCollidingWithSelf()) {
             gameOver = true;
+            return;
         }
 
-        if(headY>boardHeight-1||headY<0)
-        {
+        if (snake.isOutOfBounds(boardWidth, boardHeight)) {
             gameOver = true;
+            return;
         }
 
-        if(headX==appleX&&headY==appleY)
-        {
+        if (snake.isCollidingWith(new Point(appleX, appleY))) {
             if(150-lastApple>100)
             {
                 score+=100;
@@ -163,27 +83,9 @@ public class Game extends JPanel implements KeyListener, ActionListener
                 score+=(150-lastApple);
                 lastApple=0;
             }
-            addTail();
+            snake.growTail();
             newApple();
         }
-    }
-
-    //adds one more point to the tail
-    private void addTail()
-    {
-        int[] tempX = new int[tailX.length+1];
-        int[] tempY = new int[tailY.length+1];
-
-        for(int i=0;i<tailX.length;i++)
-        {
-            tempX[i] = tailX[i];
-            tempY[i] = tailY[i];
-        }
-
-        tempX[tempX.length-1] = tempX[tempX.length-2]-(tempX[tempX.length-2]-tempX[tempX.length-3]);
-        tempY[tempY.length-1] = tempY[tempY.length-2]-(tempY[tempY.length-2]-tempY[tempY.length-3]);
-        tailX = tempX;
-        tailY = tempY;
     }
 
     //moves the apple to a random location on the map
@@ -217,16 +119,11 @@ public class Game extends JPanel implements KeyListener, ActionListener
 
             if(delta>=1)
             {
-                if(frame.getState()==Frame.ICONIFIED)
-                {
-                    paused=true;
-                }else{
-                    paused=false;
-                }
+                paused= frame.getState() == Frame.ICONIFIED;
 
                 if(!gameOver&&!paused&&!settings&&started)
                 {
-                    move();
+                    snake.move();
                     collision();
                 }
                 if(score>userInfo.getHighScore())
@@ -324,22 +221,22 @@ public class Game extends JPanel implements KeyListener, ActionListener
 
     //All graphics math and rendering is done here
     @Override
-    public void paint(Graphics g)
+    public void paint(Graphics graphics)
     {
-        super.paint(g);
+        super.paint(graphics);
         if(running)
         {
-            g.setColor(userInfo.getSnakeColor());
-            g.fillRect(headX*tileSize,headY*tileSize,tileSize,tileSize);
-            for(int i=0;i<tailX.length;i++)
-            {
-                g.fillRect(tailX[i]*tileSize,tailY[i]*tileSize,tileSize,tileSize);
-            }
-
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.scale(tileSize, tileSize);
+            snake.render(g);
             g.setColor(userInfo.getUiColor());
-            g.fillRect(appleX*tileSize,appleY*tileSize,tileSize,tileSize);
+            g.fillRect(appleX,appleY,1,1);
+            g.dispose();
 
-            g.setFont(new Font("Helvatica",Font.PLAIN,16));
+            g = (Graphics2D) graphics.create();
+            g.setColor(userInfo.getUiColor());
+
+            g.setFont(new Font("Helvetica",Font.PLAIN,16));
             FontMetrics font = g.getFontMetrics();
             g.drawString("Pause/Hide [P]",(int)(windowSize.getWidth()-font.stringWidth("Pause/Hide [P] ")),font.getHeight());
             g.drawString("Restart [Delete]",(int)(windowSize.getWidth()-font.stringWidth("Restart [Delete] ")),font.getHeight()*2);
@@ -350,7 +247,7 @@ public class Game extends JPanel implements KeyListener, ActionListener
 
             if(gameOver)
             {
-                g.setFont(new Font("Helvatica",Font.PLAIN,60));
+                g.setFont(new Font("Helvetica",Font.PLAIN,60));
                 font = g.getFontMetrics();
                 int gox = (int)((windowSize.getWidth()-font.stringWidth("Game Over"))/2);
                 int goy = (int)((windowSize.getHeight()-font.getHeight())/2);
@@ -359,7 +256,6 @@ public class Game extends JPanel implements KeyListener, ActionListener
                 g.setColor(Color.WHITE);
                 g.drawString("Game Over",gox,goy);
             }
-            super.paint(g);
         }
     }
 
@@ -378,48 +274,36 @@ public class Game extends JPanel implements KeyListener, ActionListener
         if(k==KeyEvent.VK_UP||k==KeyEvent.VK_W)
         {
             started=true;
-            if(!movingDown)
+            if(snake.getLastMoveDirection() != Direction.DOWN)
             {
-                up = true;
-                down = false;
-                left = false;
-                right = false;
+                snake.direction = Direction.UP;
             }
         }
 
         if(k==KeyEvent.VK_DOWN||k==KeyEvent.VK_S)
         {
             started=true;
-            if(!movingUp)
+            if(snake.getLastMoveDirection() != Direction.UP)
             {
-                up = false;
-                down = true;
-                left = false;
-                right = false;
+                snake.direction = Direction.DOWN;
             }
         }
 
         if(k==KeyEvent.VK_RIGHT||k==KeyEvent.VK_D)
         {
             started=true;
-            if(!movingLeft)
+            if(snake.getLastMoveDirection() != Direction.LEFT)
             {
-                up = false;
-                down = false;
-                left = false;
-                right = true;
+                snake.direction = Direction.RIGHT;
             }
         }
 
         if(k==KeyEvent.VK_LEFT||k==KeyEvent.VK_A)
         {
             started=true;
-            if(!movingRight)
+            if(snake.getLastMoveDirection() != Direction.RIGHT)
             {
-                up = false;
-                down = false;
-                left = true;
-                right = false;
+                snake.direction = Direction.LEFT;
             }
         }
 
