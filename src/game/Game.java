@@ -1,6 +1,7 @@
 package game;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Random;
 import javax.swing.*;
 
 public class Game extends JPanel implements KeyListener, ActionListener
@@ -17,9 +18,8 @@ public class Game extends JPanel implements KeyListener, ActionListener
     private JColorChooser colorChooser;
 
     private IRenderManager boardRenderer;
-
-    private Snake snake;
-    private AppleManager appleManager;
+    private ISnakeController snakeController;
+    private IAppleManager appleManager;
 
     //inits everything the program needs to run
     private Game()
@@ -33,10 +33,10 @@ public class Game extends JPanel implements KeyListener, ActionListener
     {
         boardRenderer = new SimpleRenderManager();
 
-        snake = new Snake(boardWidth/2, boardHeight/2, 3);
-        appleManager = new AppleManager(1, new Point(boardWidth, boardHeight));
+        snakeController = new SnakeController(boardWidth/2, boardHeight/2, 3);
+        appleManager = new AppleManager(1, new Point(boardWidth, boardHeight), new Random(System.currentTimeMillis()));
 
-        boardRenderer.addRenderObject(snake);
+        boardRenderer.addRenderObject(snakeController);
         boardRenderer.addRenderObject(appleManager);
         boardRenderer.setScale(tileSize, tileSize);
 
@@ -48,7 +48,7 @@ public class Game extends JPanel implements KeyListener, ActionListener
     private void restart()
     {
         appleManager.reset();
-        snake.reset();
+        snakeController.reset();
 
         running = true;
         gameOver=false;
@@ -61,17 +61,17 @@ public class Game extends JPanel implements KeyListener, ActionListener
     //This detects if the player runs into his own tail or an apple
     private void collision()
     {
-        if (snake.isCollidingWithSelf()) {
+        if (snakeController.isCollidingWithSelf()) {
             gameOver = true;
             return;
         }
 
-        if (snake.isOutOfBounds(boardWidth, boardHeight)) {
+        if (snakeController.isOutOfBounds(boardWidth, boardHeight)) {
             gameOver = true;
             return;
         }
 
-        score += appleManager.CheckCollision(snake);
+        score += appleManager.checkCollision(snakeController);
     }
 
     //Game loop
@@ -101,7 +101,7 @@ public class Game extends JPanel implements KeyListener, ActionListener
 
                 if(!gameOver&&!paused&&!settings&&started)
                 {
-                    snake.move();
+                    snakeController.move();
                     collision();
                 }
                 if(score > UserPreferenceManager.USER_PREFERENCES.getHighScore())
@@ -249,36 +249,36 @@ public class Game extends JPanel implements KeyListener, ActionListener
         if(k==KeyEvent.VK_UP||k==KeyEvent.VK_W)
         {
             started=true;
-            if(snake.getLastMoveDirection() != Direction.DOWN)
+            if(snakeController.getLastMoveDirection() != Direction.DOWN)
             {
-                snake.direction = Direction.UP;
+                snakeController.setDirection(Direction.UP);
             }
         }
 
         if(k==KeyEvent.VK_DOWN||k==KeyEvent.VK_S)
         {
             started=true;
-            if(snake.getLastMoveDirection() != Direction.UP)
+            if(snakeController.getLastMoveDirection() != Direction.UP)
             {
-                snake.direction = Direction.DOWN;
+                snakeController.setDirection(Direction.DOWN);
             }
         }
 
         if(k==KeyEvent.VK_RIGHT||k==KeyEvent.VK_D)
         {
             started=true;
-            if(snake.getLastMoveDirection() != Direction.LEFT)
+            if(snakeController.getLastMoveDirection() != Direction.LEFT)
             {
-                snake.direction = Direction.RIGHT;
+                snakeController.setDirection(Direction.RIGHT);
             }
         }
 
         if(k==KeyEvent.VK_LEFT||k==KeyEvent.VK_A)
         {
             started=true;
-            if(snake.getLastMoveDirection() != Direction.RIGHT)
+            if(snakeController.getLastMoveDirection() != Direction.RIGHT)
             {
-                snake.direction = Direction.LEFT;
+                snakeController.setDirection(Direction.LEFT);
             }
         }
 

@@ -3,17 +3,17 @@ package game;
 import java.awt.*;
 import java.util.LinkedList;
 
-public class Snake implements IRenderObject {
+public class SnakeController implements ISnakeController {
     private Point head;
     private LinkedList<Point> body;
-    public Direction direction;
+    private Direction direction;
     private Direction lastMoveDirection;
 
     private int startX;
     private int startY;
     private int startLen;
 
-    public Snake(int x, int y, int length) {
+    public SnakeController(int x, int y, int length) {
         startX = x;
         startY = y;
         startLen = length;
@@ -119,5 +119,10 @@ public class Snake implements IRenderObject {
 
     public Direction getLastMoveDirection() {
         return lastMoveDirection;
+    }
+
+    @Override
+    public void setDirection(Direction direction) {
+        this.direction = direction;
     }
 }

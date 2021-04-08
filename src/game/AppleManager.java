@@ -1,31 +1,46 @@
 package game;
 
 import java.awt.*;
+import java.util.Random;
 
-public class AppleManager implements IRenderObject {
-    public Apple[] apples;
+interface IAppleManager extends IRenderObject {
+    int checkCollision(ISnakeController snakeController);
+    void reset();
+}
+
+public class AppleManager implements IAppleManager {
+    private Point[] apples;
     private int lastApple;
 
     private Point boardSize;
+    private Random random;
 
-    public AppleManager(int appleCount, Point boardSize) {
+    public AppleManager(int appleCount, Point boardSize, Random random) {
         this.boardSize = boardSize;
+        this.random = random;
+
         lastApple = 0;
 
-        apples = new Apple[appleCount];
+        apples = new Point[appleCount];
         for (int i = 0; i < appleCount; i++) {
-            apples[i] = new Apple();
-            apples[i].randomMove(boardSize.x, boardSize.y);
+            apples[i] = new Point();
+            setRandomPoint(apples[i], boardSize.x, boardSize.y);
         }
     }
 
-    public int CheckCollision(Snake snake) {
+    private void setRandomPoint(Point p, int boundWidth, int boundHeight) {
+        p.x = random.nextInt(boundWidth - 1);;
+        p.y = random.nextInt(boundHeight - 1);;
+    }
+
+    public int checkCollision(ISnakeController snakeController) {
         lastApple++;
 
-        for (Apple apple : apples) {
-            if (snake.isCollidingWith(new Point(apple.pos.x, apple.pos.y))) {
-                snake.growTail();
-                apple.randomMove(boardSize.x, boardSize.y);
+        for (int i=0; i < apples.length; i++) {
+
+            if (snakeController.isCollidingWith(new Point(apples[i].x, apples[i].y))) {
+                snakeController.growTail();
+                setRandomPoint(apples[i], boardSize.x, boardSize.y);
 
                 int score;
 
@@ -47,14 +62,15 @@ public class AppleManager implements IRenderObject {
 
     public void reset() {
         for (int i = 0; i < apples.length; i++) {
-            apples[i].randomMove(boardSize.x, boardSize.y);
+            setRandomPoint(apples[i], boardSize.x, boardSize.y);
         }
     }
 
     @Override
     public void render(Graphics2D g) {
-        for (Apple apple : apples) {
-            apple.render(g);
+        for (Point apple : apples) {
+            g.setColor(UserPreferenceManager.USER_PREFERENCES.getUiColor());
+            g.fillRect(apple.x, apple.y, 1, 1);
         }
     }
 
