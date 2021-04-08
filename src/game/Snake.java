@@ -3,23 +3,36 @@ package game;
 import java.awt.*;
 import java.util.LinkedList;
 
-public class Snake implements Renderer {
+public class Snake implements IRenderObject {
     private Point head;
     private LinkedList<Point> body;
     public Direction direction;
     private Direction lastMoveDirection;
-    private Color color;
+
+    private int startX;
+    private int startY;
+    private int startLen;
 
     public Snake(int x, int y, int length) {
+        startX = x;
+        startY = y;
+        startLen = length;
+
         head = new Point();
-        head.x = x;
-        head.y = y;
         body = new LinkedList<>();
+
+        reset();
+    }
+
+    public void reset() {
+        head.x = startX;
+        head.y = startY;
         direction = Direction.UP;
         lastMoveDirection = Direction.UP;
 
-        for (int i = 1; i < length; i++) {
-            body.add(new Point(x, y + i));
+        body.clear();
+        for (int i = 1; i < startLen; i++) {
+            body.add(new Point(startX, startY + i));
         }
     }
 
@@ -90,18 +103,18 @@ public class Snake implements Renderer {
     }
 
     @Override
-    public void setColor(Color c) {
-        color = c;
-    }
-
-    @Override
     public void render(Graphics2D g) {
-        g.setColor(color);
+        g.setColor(UserPreferenceManager.USER_PREFERENCES.getSnakeColor());
 
         g.fillRect(head.x, head.y, 1, 1);
         for (Point tailPiece : body) {
             g.fillRect(tailPiece.x, tailPiece.y, 1, 1);
         }
+    }
+
+    @Override
+    public boolean isVisible() {
+        return true;
     }
 
     public Direction getLastMoveDirection() {

@@ -2,8 +2,7 @@ package game;
 
 import java.awt.*;
 
-public interface Renderer {
-    void setColor(Color c);
-
+public interface IRenderObject {
     void render(Graphics2D g);
+    boolean isVisible();
 }
